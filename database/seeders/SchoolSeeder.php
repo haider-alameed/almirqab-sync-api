@@ -13,7 +13,6 @@ class SchoolSeeder extends Seeder
             [
                 'name' => 'Abitalib Primary',
                 'mongo_id' => 'mongo_id',
-
             ],
 
         ];
