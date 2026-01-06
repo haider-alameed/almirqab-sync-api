@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 
 
-class School extends Model
+class Teacher extends Model
 {
 
     protected $fillable = [
@@ -22,7 +22,7 @@ class School extends Model
         'gander',
         'active',
     ];
-    protected $table = 'schools';
+    protected $table = 'teac';
     protected $casts = [
         'almirqab_password' => 'encrypted',
     ];

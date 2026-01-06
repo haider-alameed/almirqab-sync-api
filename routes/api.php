@@ -10,6 +10,7 @@ Route::get('/hello', function () {
 });
 //Route::middleware('auth:sanctum')->group(function () {
     Route::group([], __DIR__ . '/api/school-routes.php');
+    Route::group([], __DIR__ . '/api/teacher-routes.php');
 
 
 //});

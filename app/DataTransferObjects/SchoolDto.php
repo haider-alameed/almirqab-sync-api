@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 readonly class SchoolDto
 {
     public function __construct(
+        public int $id,
         public string $mongoId,
         public string $name,
         public string $image,
@@ -27,8 +28,9 @@ readonly class SchoolDto
     public static function fromRequest(FormRequest $request): self
     {
 
-
+dd($request);
         return new self(
+            id: $request->validated('id'),
             mongoId: $request->validated('mongoId'),
             name: $request->validated('name'),
             image: $request->validated('image'),

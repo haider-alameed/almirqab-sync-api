@@ -62,4 +62,12 @@ class SchoolController extends Controller
         $school = $this->schoolService->update($school, $schoolDto);
         return new SchoolResource($school);
     }
+
+    public function updateSchoolFromMurqaib()
+    {
+
+        return $this->schoolService->updateSchoolFromMurqaib();
+
+
+    }
 }
