@@ -13,9 +13,7 @@ class SchoolSeeder extends Seeder
             [
                 'name' => 'Abitalib Primary',
                 'mongo_id' => 'mongo_id',
-                'base_url' => 'https://abitalibp.school.iq',
-                'almirqab_email' => 'abitalib.programer@ag.edu.iq',
-                'almirqab_password' => 'Nw6/Ms0=Km4/Fz1W', // will be encrypted by cast
+
             ],
 
         ];
