@@ -41,5 +41,15 @@ class School extends Model
         );
     }
 
+    public function years()
+    {
+        return $this->belongsToMany(
+            Year::class,
+            'school_year',
+            'school_id',
+            'year_id'
+        );
+    }
+
 
 }

@@ -6,6 +6,7 @@ use App\DataTransferObjects\SchoolDto;
 use App\Filters\SchoolFilter;
 use App\Models\School;
 use App\Models\SchoolType;
+use App\Models\Year;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -135,6 +136,7 @@ class SchoolService
 
         $logoUrl = data_get($info, 'logo.original_url');
         $types = data_get($info, 'types', []);
+        $years = data_get($info, 'years', []);
 
         $school->update([
             'name' => data_get($info, 'name', $school->name),
@@ -160,9 +162,32 @@ class SchoolService
 
         $school->types()->sync($schoolTypeIds);
 
+//-----------years ----------------------------------------------------------
+        foreach ($years as $year) {
 
+            $schoolYear = Year::updateOrCreate(
+                ['almirqab_id' => data_get($year, 'id')],
+                ['year' => data_get($year, 'year')]
+            );
+
+            $schoolYearIds[] = $schoolYear->id;
+        }
+        $school->years()->sync($schoolYearIds);
         return $school->fresh()->load('types');
+
     }
 
+    public function getToken($school)
+    {
+        $cacheKey = "almirqab_token:school:{$school->id}";
+
+        $token = $this->loginService->token(
+            $school->base_url,
+            $school->almirqab_email,
+            $school->almirqab_password,
+            $cacheKey
+        );
+        return $token;
+    }
 
 }

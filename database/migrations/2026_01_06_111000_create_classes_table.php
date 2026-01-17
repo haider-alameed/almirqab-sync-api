@@ -12,6 +12,7 @@ return new class extends Migration {
             $table->string('mongo_id', 24)->unique()->index();
             $table->integer('almirqab_id')->index()->nullable();
 
+            $table->unsignedBigInteger('school_id');
             $table->unsignedBigInteger('stage_id');
             $table->unsignedBigInteger('supervisor_id')->nullable();
 
@@ -23,18 +24,22 @@ return new class extends Migration {
             $table->unsignedInteger('students_count')->default(0);
             $table->unsignedInteger('timetable_count')->default(0);
 
-            $table->timestamps();
 
             // Indexes + FKs
+            $table->index('school_id');
             $table->index('stage_id');
             $table->index('supervisor_id');
 
+            $table->foreign('school_id')->references('id')->on('schools')->cascadeOnDelete();
             $table->foreign('stage_id')->references('id')->on('stages')->cascadeOnDelete();
 
             $table->foreign('supervisor_id')->references('id')->on('teachers')->nullOnDelete();
 
 
             $table->unique(['stage_id', 'title']);
+
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

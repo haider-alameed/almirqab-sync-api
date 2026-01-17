@@ -13,7 +13,8 @@ use App\Models\Teacher;
 use App\Services\TeacherService;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
+
 
 class TeacherController extends Controller
 {

@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->id();
             $table->string('mongo_id', 24)->unique()->index();
             $table->integer('almirqab_id')->index()->nullable();
-
+            $table->unsignedBigInteger('school_id');
             $table->unsignedTinyInteger('day');   // 1..5
             $table->unsignedTinyInteger('order'); // period number
 
@@ -26,7 +26,7 @@ return new class extends Migration {
              $table->unsignedBigInteger('year_id')->nullable();
 
             $table->timestamps();
-
+            $table->softDeletes();
             // one class can't have 2 courses in same day+order
             $table->unique(['class_id', 'day', 'order'], 'weekly_unique_slot');
 

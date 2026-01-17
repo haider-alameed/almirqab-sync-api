@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->integer('almirqab_id')->index()->nullable();
             $table->string('mongo_id', 24)->unique()->index();
+            $table->unsignedBigInteger('school_id');
             $table->string('full_name')->index();
             $table->date('date_of_birth')->nullable();
 

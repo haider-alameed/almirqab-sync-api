@@ -11,14 +11,14 @@ return new class extends Migration {
             $table->id();
             $table->string('mongo_id', 24)->unique()->index();
             $table->integer('almirqab_id')->index()->nullable();
-
+            $table->unsignedBigInteger('school_id');
             $table->unsignedBigInteger('course_id');
             $table->unsignedBigInteger('teacher_id');
 
              $table->unsignedBigInteger('year_id')->nullable();
 
             $table->timestamps();
-
+            $table->softDeletes();
             // prevent duplicates
             $table->unique(['course_id', 'teacher_id']);
 
@@ -33,6 +33,12 @@ return new class extends Migration {
 
     public function down(): void
     {
+        Schema::table('course_teacher', function (Blueprint $table) {
+            $table->dropForeign(['course_id']);
+            $table->dropForeign(['teacher_id']);
+            $table->dropForeign(['year_id']);
+        });
+
         Schema::dropIfExists('course_teacher');
     }
 };

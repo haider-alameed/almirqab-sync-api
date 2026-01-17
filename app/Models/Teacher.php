@@ -8,38 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 
 class Teacher extends Model
 {
+    protected $table = 'teachers';
 
     protected $fillable = [
-        'mongo_id',
-        'name',
+        'almirqab_id',
+        'person_id',
+        'school_id',
+        'year_id',
+        'migrated',
+        'app_state',
+        'state_date',
+        'teacher_in_api',
+        'gender',
         'image',
-        'closest_point',
-        'manager_name',
-        'manager_phone',
-        'directorate',
-        'governorate',
-        'group_name',
-        'gander',
-        'active',
-    ];
-    protected $table = 'teac';
-    protected $casts = [
-        'almirqab_password' => 'encrypted',
+        'mongo_created_at',
+        'mongo_updated_at',
     ];
 
-    protected $hidden = [
-        'almirqab_password',
-    ];
 
-    public function types()
-    {
-        return $this->belongsToMany(
-            SchoolType::class,
-            'school_rel_school_type',
-            'school_id',
-            'school_type_id'
-        );
-    }
 
 
 }

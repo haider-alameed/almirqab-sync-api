@@ -9,14 +9,16 @@ return new class extends Migration {
     {
         Schema::create('teachers', function (Blueprint $table) {
             $table->id();
-            $table->string('mongo_id', 24)->unique()->index();
+            $table->integer('almirqab_id')->index()->nullable();
+            $table->string('mongo_id', 24)->nullable()->unique()->index();
+            $table->unsignedBigInteger('school_id');
             $table->foreignId('person_id')->constrained('persons')->cascadeOnDelete();
             $table->foreignId('year_id')->index()->constrained('persons')->cascadeOnDelete()->nullable();
             $table->boolean('migrated')->default(false);
             $table->unsignedTinyInteger('app_state')->default(1);
             $table->dateTime('state_date')->nullable();
 //this column from teachers plain
-            $table->string('mongo_id', 24)->nullable()->unique()->index();
+
             $table->string('user_code', 50)->nullable()->index();
             $table->string('nfc_id', 50)->nullable()->index();
             $table->string('nfc_number', 50)->nullable();
