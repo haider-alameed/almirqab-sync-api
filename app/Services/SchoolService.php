@@ -25,7 +25,7 @@ class SchoolService
     {
         $perPage = $request->get('perPage', 25);
         $filter = resolve(SchoolFilter::class);
-        $query = School::orderBy('order')->useFilter($filter);
+        $query = School::useFilter($filter);
         return $query->paginate($perPage);
     }
 
@@ -126,25 +126,24 @@ class SchoolService
     }
 
 
-    public function updateSchoolFromMurqaib()
+    public function updateSchoolFromMurqaib($school)
     {
-        $id = 1;
 
-        $school = School::findOrFail($id);
 
-        $info = $this->getSchoolInfo($school);
 
-        $logoUrl = data_get($info, 'logo.original_url');
-        $types = data_get($info, 'types', []);
-        $years = data_get($info, 'years', []);
+        $schoolInfo = $this->getSchoolInfo($school);
+
+        $logoUrl = data_get($schoolInfo, 'logo.original_url');
+        $types = data_get($schoolInfo, 'types', []);
+        $years = data_get($schoolInfo, 'years', []);
 
         $school->update([
-            'name' => data_get($info, 'name', $school->name),
-            'closest_point' => data_get($info, 'closest_point', $school->closest_point),
-            'manager_name' => data_get($info, 'manager_name', $school->manager_name),
-            'manager_phone' => data_get($info, 'manager_phone', $school->manager_phone),
-            'directorate' => data_get($info, 'directorate', $school->directorate),
-            'governorate' => data_get($info, 'governorate', $school->governorate),
+            'name' => data_get($schoolInfo, 'name', $school->name),
+            'closest_point' => data_get($schoolInfo, 'closest_point', $school->closest_point),
+            'manager_name' => data_get($schoolInfo, 'manager_name', $school->manager_name),
+            'manager_phone' => data_get($schoolInfo, 'manager_phone', $school->manager_phone),
+            'directorate' => data_get($schoolInfo, 'directorate', $school->directorate),
+            'governorate' => data_get($schoolInfo, 'governorate', $school->governorate),
             'image' => $logoUrl ?: $school->image,
         ]);
 

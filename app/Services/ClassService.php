@@ -9,6 +9,7 @@ use App\Models\School;
 use App\Models\Stage;
 use App\Models\Teacher;
 use App\Support\MongoObjectId;
+use App\Support\SyncHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -27,7 +28,7 @@ class ClassService
     {
         $perPage = $request->get('perPage', 25);
         $filter = resolve(ClassFilter::class);
-        $query = Classes::orderBy('order')->useFilter($filter);
+        $query = Classes::useFilter($filter);
         return $query->paginate($perPage);
     }
 
@@ -104,46 +105,70 @@ class ClassService
     }
 
 
-    public function updateClassFromMurqaib()
+    public function updateClassFromMurqaib($school,$dateFetch)
     {
-        $id = 1;
 
-        $school = School::findOrFail($id);
 
         $rows = $this->getClassInfo($school);
 
 
         foreach ($rows as $r) {
-            $class = Classes::firstOrNew(['almirqab_id' => (int) $r['id']]);
+            if (! SyncHelper::shouldSyncByUpdatedAt($r, $dateFetch)) {
+                logger()->info('classes not updated', ['almirqab_id' => $row['id'] ?? null]);
+                continue;
+            }
+            $class = Classes::firstOrNew(['almirqab_id' => (int)$r['id']]);
 
             $class->mongo_id ??= MongoObjectId::generate();
 
-            $supervisorId = Teacher::where('almirqab_id', (int) ($r['supervisor_id'] ?? 0))->value('id');
-            $stageId      = Stage::where('almirqab_id', (int) ($r['stage_id'] ?? 0))->value('id');
+            $supervisorId = Teacher::where('almirqab_id', (int)($r['supervisor_id'] ?? 0))->value('id');
+            $stageId = Stage::where('almirqab_id', (int)($r['stage_id'] ?? 0))->value('id');
 
             if (!$stageId) {
                 continue; // or throw/log
             }
 
             $class->fill([
-                'almirqab_id'     => $r['id'] ?? null,
-                'school_id'        => $school->id,
-                'stage_id'        => $stageId,
-                'title'           => $r['title'] ?? null,
-                'supervisor_id'   => $supervisorId ?: null,
-                'class_title'     => $r['class_title'] ?? null,
-                'students_count'  => $r['students_count'] ?? 0,
+                'almirqab_id' => $r['id'] ?? null,
+                'school_id' => $school->id,
+                'stage_id' => $stageId,
+                'title' => $r['title'] ?? null,
+                'supervisor_id' => $supervisorId ?: null,
+                'class_title' => $r['class_title'] ?? null,
+                'students_count' => $r['students_count'] ?? 0,
                 'timetable_count' => $r['timetable_count'] ?? 0,
-                'full_title'      => $r['full_title'] ?? null,
+                'full_title' => $r['full_title'] ?? null,
             ]);
 
             $class->save();
         }
 
 
-
         return $rows;
     }
 
+    public function getClassesDeletedFromMurqaib($school): array|string
+    {
 
+        $token = $this->schoolService->getToken($school);
+
+        $res = Http::baseUrl($school->base_url)
+            ->acceptJson()
+            ->withToken($token)
+            ->get('/api/admin/deleted-report');
+
+
+        $res->throw();
+        $data = $res->json();
+        $ids = collect($data['data']['classes'] ?? [])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isNotEmpty()) {
+            Classes::whereIn('almirqab_id', $ids)->delete();
+        }
+        return "success";
+    }
 }

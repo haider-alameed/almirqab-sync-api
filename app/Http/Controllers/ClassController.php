@@ -7,12 +7,18 @@ use App\Enums\Permissions\ClassPermission;
 
 use App\Http\Requests\Class\ClassStoreRequest;
 use App\Http\Requests\Class\ClassUpdateRequest;
+use App\Http\Resources\Class\ClassCompactResource;
 use App\Http\Resources\ClassCollection;
 use App\Http\Resources\ClassResource;
+use App\Http\Resources\School\SchoolCompactResource;
+use App\Http\Resources\School\SchoolFullResource;
 use App\Models\Classes;
+use App\Models\School;
 use App\Services\ClassService;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
+use App\Support\ApiResourceResponder;
 
 class ClassController extends Controller
 {
@@ -20,12 +26,17 @@ class ClassController extends Controller
     {
     }
 
-    public function index(Request $request): ClassCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        Gate::authorize(ClassPermission::Index);
-        $schools = $this->classService->index($request);
+//        Gate::authorize(ClassPermission::Index);
+        $classes = $this->classService->index($request);
+        return ApiResourceResponder::collection(
+            $request,
+            $classes,
+            ClassCompactResource::class,
+            ClassCompactResource::class
+        );
 
-        return new ClassCollection($schools);
     }
 
     public function list(): ClassCollection
@@ -67,6 +78,14 @@ class ClassController extends Controller
     {
 
         return $this->classService->updateClassFromMurqaib();
+
+
+    }
+
+    public function getClassesDeletedFromMurqaib()
+    {
+
+        return $this->classService->getClassesDeletedFromMurqaib(School::find(1));
 
 
     }

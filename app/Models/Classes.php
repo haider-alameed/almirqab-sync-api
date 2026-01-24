@@ -3,11 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use XiDanko\QueryFilter\HasFilter;
 
 
 class Classes extends Model
 {
+    use HasFilter;
     protected $table = 'classes';
     protected $fillable = [
         'mongo_id',

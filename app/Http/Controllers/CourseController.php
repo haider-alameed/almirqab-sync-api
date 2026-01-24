@@ -10,6 +10,7 @@ use App\Http\Requests\Course\CourseUpdateRequest;
 use App\Http\Resources\CourseCollection;
 use App\Http\Resources\CourseResource;
 use App\Models\Course;
+use App\Models\School;
 use App\Services\CourseService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -67,6 +68,13 @@ class CourseController extends Controller
     {
 
         return $this->schoolService->updateCourseFromMurqaib();
+
+
+    }
+    public function getCoursesDeletedFromMurqaib()
+    {
+
+        return $this->schoolService->getCoursesDeletedFromMurqaib(School::find(1));
 
 
     }

@@ -9,6 +9,7 @@ use App\Http\Requests\Stage\StageStoreRequest;
 use App\Http\Requests\Stage\StageUpdateRequest;
 use App\Http\Resources\StageCollection;
 use App\Http\Resources\StageResource;
+use App\Models\School;
 use App\Models\Stage;
 use App\Services\StageService;
 use Illuminate\Http\Request;
@@ -67,6 +68,13 @@ class StageController extends Controller
     {
 
         return $this->schoolService->updateStageFromMurqaib();
+
+
+    }
+    public function getStagesDeletedFromMurqaib()
+    {
+
+        return $this->schoolService->getStagesDeletedFromMurqaib(School::find(1));
 
 
     }

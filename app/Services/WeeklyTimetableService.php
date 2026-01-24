@@ -4,14 +4,13 @@ namespace App\Services;
 
 use App\Models\Classes;
 use App\Models\Course;
-use App\Models\School;
-use App\Models\Stage;
+
 use App\Models\WeeklyTimetable;
 use App\Support\MongoObjectId;
+use App\Support\SyncHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
-use App\Services\PersonService;
-use Carbon\Carbon;
+
 use Illuminate\Support\Facades\DB;
 
 class WeeklyTimetableService
@@ -24,7 +23,7 @@ class WeeklyTimetableService
 
     public function getWeeklyTimetablesFromMurqap($school, $classId): array
     {
-        Log::info("getWeeklyTimetablesFromMurqap");
+
         $token = $this->schoolService->getToken($school);
 
         $res = Http::baseUrl($school->base_url)
@@ -32,27 +31,22 @@ class WeeklyTimetableService
             ->withToken($token)
             ->get("/api/admin/weekly-timetable/$classId");
 
-        Log::info($res);
-        Log::info($res);
+
         $res->throw();
         $data = $res->json();
-        Log::info($data);
+
         return $data["data"];
     }
 
 
-    public function updateWeeklyTimetableFromMurqaib()
+    public function updateWeeklyTimetableFromMurqaib($school,$dateFetch):array|string
     {
-        Log::info('updateWeeklyTimetableFromMurqaib');
 
-        $school = School::findOrFail(1);
         $classes = Classes::where('school_id', $school->id)->get();
 
-        DB::transaction(function () use ($school, $classes) {
+        DB::transaction(function () use ($school, $classes,$dateFetch) {
 
             foreach ($classes as $class) {
-                Log::info('Class almirqab_id: ' . $class->almirqab_id);
-
                 $items = $this->getWeeklyTimetablesFromMurqap($school, $class->almirqab_id);
 
                 if (!is_iterable($items)) {
@@ -60,7 +54,11 @@ class WeeklyTimetableService
                 }
 
                 foreach ($items as $item) {
-                    Log::info($item);
+                    if (! SyncHelper::shouldSyncByUpdatedAt($item, $dateFetch)) {
+                        logger()->info('classes not updated', ['almirqab_id' => $r['id'] ?? null]);
+                        continue;
+                    }
+
                     $almirqabId = (int)data_get($item, 'id');
 
                     $weeklyTimetable = WeeklyTimetable::firstOrNew([
@@ -89,8 +87,31 @@ class WeeklyTimetableService
             return response()->json(['status' => 'ok']);
         });
 
-
+        return response()->json(['status' => 'NotOk']);
     }
+    public function getTimetableDeletedFromMurqaib($school): array|string
+    {
 
+        $token = $this->schoolService->getToken($school);
+
+        $res = Http::baseUrl($school->base_url)
+            ->acceptJson()
+            ->withToken($token)
+            ->get('/api/admin/deleted-report');
+
+
+        $res->throw();
+        $data = $res->json();
+        $ids = collect($data['data']['timetable'] ?? [])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isNotEmpty()) {
+            WeeklyTimetable::whereIn('almirqab_id', $ids)->delete();
+        }
+        return "success";
+    }
 
 }

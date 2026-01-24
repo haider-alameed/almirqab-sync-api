@@ -7,6 +7,7 @@ use App\Models\Stage;
 use App\Models\Teacher;
 use App\Models\Year;
 use App\Support\MongoObjectId;
+use App\Support\SyncHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use App\Services\PersonService;
@@ -39,20 +40,23 @@ class TeacherService
     }
 
 
-    public function updateTeacherFromMurqaib()
+    public function updateTeacherFromMurqaib($school,$dateFetch)
     {
 
-        $school = School::findOrFail(1);
+
         $rows = $this->getTeachersFromMurqap($school);
 
-        DB::transaction(function () use ($rows,$school) {
+        DB::transaction(function () use ($rows,$school,$dateFetch) {
             Log::info('---------------------------------');
             foreach ($rows as $r) {
 
                 if (empty($r['person'])) {
                     continue;
                 }
-
+                if (! SyncHelper::shouldSyncByUpdatedAt($r, $dateFetch)) {
+                    logger()->info('classes not updated', ['almirqab_id' => $r['id'] ?? null]);
+                    continue;
+                }
                 // 1) Person insert/update in PersonService
                 $person = $this->personService->upsertFromMurqaib($r['person'],$school->id);
 
@@ -84,5 +88,29 @@ class TeacherService
         });
 
         return $rows;
+    }
+    public function getTeacherDeletedFromMurqaib($school): array|string
+    {
+
+        $token = $this->schoolService->getToken($school);
+
+        $res = Http::baseUrl($school->base_url)
+            ->acceptJson()
+            ->withToken($token)
+            ->get('/api/admin/deleted-report');
+
+
+        $res->throw();
+        $data = $res->json();
+        $ids = collect($data['data']['teachers'] ?? [])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isNotEmpty()) {
+            Teacher::whereIn('almirqab_id', $ids)->delete();
+        }
+        return "success";
     }
 }

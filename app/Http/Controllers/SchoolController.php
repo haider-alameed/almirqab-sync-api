@@ -9,9 +9,14 @@ use App\Http\Requests\School\SchoolStoreRequest;
 use App\Http\Requests\School\SchoolUpdateRequest;
 use App\Http\Resources\SchoolCollection;
 use App\Http\Resources\SchoolResource;
+use App\Http\Resources\School\SchoolFullResource;
+use App\Http\Resources\School\SchoolCompactResource;
 use App\Models\School;
 use App\Services\SchoolService;
+
+use App\Support\ApiResourceResponder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Illuminate\Support\Facades\Gate;
 
 class SchoolController extends Controller
@@ -20,12 +25,16 @@ class SchoolController extends Controller
     {
     }
 
-    public function index(Request $request): SchoolCollection
+    public function index(Request $request): AnonymousResourceCollection
     {
-        Gate::authorize(SchoolPermission::Index);
         $schools = $this->schoolService->index($request);
 
-        return new SchoolCollection($schools);
+        return ApiResourceResponder::collection(
+            $request,
+            $schools,
+            SchoolFullResource::class,
+            SchoolCompactResource::class
+        );
     }
 
     public function list(): SchoolCollection

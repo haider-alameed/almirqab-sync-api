@@ -99,11 +99,8 @@ class StageService
     }
 
 
-    public function updateStageFromMurqaib()
+    public function updateStageFromMurqaib($school)
     {
-        $id = 1;
-
-        $school = School::findOrFail($id);
 
         $rows = $this->getStageInfo($school);
 
@@ -129,6 +126,21 @@ class StageService
 
         return $rows;
     }
+    public function getStagesDeletedFromMurqaib($school): array|string
+    {
 
+        $token = $this->schoolService->getToken($school);
+
+        $res = Http::baseUrl($school->base_url)
+            ->acceptJson()
+            ->withToken($token)
+            ->get('/api/admin/deleted-report');
+        Log::info($res);
+
+return $res->json();
+        $res->throw();
+        $data = $res->json();
+        return $data["data"];
+    }
 
 }

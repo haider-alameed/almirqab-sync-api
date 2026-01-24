@@ -4,10 +4,12 @@ namespace App\Services;
 
 use App\DataTransferObjects\CourseDto;
 use App\Filters\CourseFilter;
+use App\Models\Classes;
 use App\Models\School;
 use App\Models\Course;
 
 use App\Support\MongoObjectId;
+use App\Support\SyncHelper;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -99,16 +101,18 @@ class CourseService
     }
 
 
-    public function updateCourseFromMurqaib()
+    public function updateCourseFromMurqaib($school,$dateFetch)
     {
-        $id = 1;
 
-        $school = School::findOrFail($id);
 
         $rows = $this->getCourseInfo($school);
 
 
         foreach ($rows as $r) {
+            if (! SyncHelper::shouldSyncByUpdatedAt($r, $dateFetch)) {
+                logger()->info('classes not updated', ['almirqab_id' => $r['id'] ?? null]);
+                continue;
+            }
             $course = Course::firstOrNew(['almirqab_id' => $r['id']]);
 
             $course->mongo_id ??= MongoObjectId::generate();
@@ -126,6 +130,29 @@ class CourseService
 
         return $rows;
     }
+    public function getCoursesDeletedFromMurqaib($school): array|string
+    {
 
+        $token = $this->schoolService->getToken($school);
+
+        $res = Http::baseUrl($school->base_url)
+            ->acceptJson()
+            ->withToken($token)
+            ->get('/api/admin/deleted-report');
+
+
+        $res->throw();
+        $data = $res->json();
+        $ids = collect($data['data']['courses'] ?? [])
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($ids->isNotEmpty()) {
+            Classes::whereIn('almirqab_id', $ids)->delete();
+        }
+        return "success";
+    }
 
 }
